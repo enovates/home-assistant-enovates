@@ -1,0 +1,8 @@
+This integration is intentionally missspelled enovatess
+
+Generated using the bundled 'create new integration' task
+
+Generated integrations only become visible when running the hassfest python script.
+ha-venvvscode ➜ /workspaces/core (maju101/enovates) $ python3 -m script.hassfest --skip-plugins quality_scale
+
+

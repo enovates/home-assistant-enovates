@@ -1,0 +1,30 @@
+#
+#   This is the pyproject file for the Library part, not the integration/external component.
+#
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+[project]
+name = "enovates-modbus"
+version = "0.1.0"
+license = "Apache-2.0"
+license-files = ["LICENSE.md"]
+description = "Library for Modbus communication with Enovates EVSE"
+readme = "README.md"
+authors = [
+    {name = "Dries Kennes", email = "dries.kennes@gmail.com"},
+    {name = "Christof Mahieu"}
+]
+keywords = ["home", "automation", "enovates", "evse"]
+classifiers = [
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Home Automation",
+]
+requires-python = ">=3.13.2"
+dependencies = [
+    "pymodbus>=3.11.2",
+]

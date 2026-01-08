@@ -6,6 +6,10 @@ __pycache__
 */dist/*
 
 
+# Pycharm/IntelliJ
+.idea/
+
+
 # misc
 .coverage
 .vscode
