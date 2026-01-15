@@ -10,7 +10,7 @@ This repository is based on the [HACS Integration Blueprint](https://github.com/
 
 Until this repo is added to the default list, you will have to add the repo to your HACS installation manually, or by using this button:
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=enovates&repository=home-assistant)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=enovates&repository=home-assistant-enovates)
 
 Once you have installed the integration and restarted your Home Assistant, use the normal "Add Integration" flow (look for "Enovates"), or click this button:
 
