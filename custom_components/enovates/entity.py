@@ -1,20 +1,19 @@
-"""BlueprintEntity class."""
+"""EnovatesEntity class."""
 
 from __future__ import annotations
 
+from enovates_modbus.base import RegisterMap
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
-from .const import ATTRIBUTION
-from .coordinator import BlueprintDataUpdateCoordinator
 
+class EnovatesEntity(CoordinatorEntity[DataUpdateCoordinator[RegisterMap]]):
+    """EnovatesEntity class."""
 
-class IntegrationBlueprintEntity(CoordinatorEntity[BlueprintDataUpdateCoordinator]):
-    """BlueprintEntity class."""
-
-    _attr_attribution = ATTRIBUTION
-
-    def __init__(self, coordinator: BlueprintDataUpdateCoordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator[RegisterMap]) -> None:
         """Initialize."""
         super().__init__(coordinator)
         self._attr_unique_id = coordinator.config_entry.entry_id
