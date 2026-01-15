@@ -1,4 +1,6 @@
 {
+  "domain": "enovates",
+  "name": "Enovates",
   "codeowners": [
     "@enovates",
     "@dries007",
@@ -6,11 +8,9 @@
   ],
   "config_flow": true,
   "documentation": "https://github.com/enovates/home-assistant-enovates",
-  "domain": "enovates",
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/enovates/home-assistant-enovates/issues",
-  "name": "Enovates",
   "requirements": [
     "enovates-modbus==0.1.2"
   ],
