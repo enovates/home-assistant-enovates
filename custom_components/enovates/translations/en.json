@@ -1,0 +1,24 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "This entry is already configured."
+    },
+    "error": {
+      "connection": "Unable to connect to the Modbus TCP server.",
+      "unknown": "Unknown error occurred."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "device_id": "Device ID",
+          "host": "Host (IP address)",
+          "port": "Modbus TCP port"
+        },
+        "data_description": {
+          "device_id": "Only relevant for EVSEs with more than 1 socker or cable."
+        },
+        "description": "The EMS setting on the EVSE must be enabled before this integration can be set up!"
+      }
+    }
+  }
+}

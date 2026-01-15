@@ -1,4 +1,9 @@
+# Dev env
 colorlog==6.10.1
 homeassistant==2025.2.4
 pip>=21.3.1
 ruff==0.14.10
+pre-commit>=4.5.1
+
+# Actual code dependencies
+enovates-modbus==0.1.2
