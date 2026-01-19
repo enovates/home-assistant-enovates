@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from enovates_modbus.base import RegisterMap
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
+
+from enovates_modbus.base import RegisterMap
 
 
 class EnovatesEntity(CoordinatorEntity[DataUpdateCoordinator[RegisterMap]]):

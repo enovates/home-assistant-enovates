@@ -1,5 +1,5 @@
 {
+  "name": "Enovates",
   "hacs": "2.0.5",
-  "homeassistant": "2025.2.4",
-  "name": "Enovates"
+  "homeassistant": "2025.2.4"
 }

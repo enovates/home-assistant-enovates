@@ -6,11 +6,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.loader import Integration
+
     from enovates_modbus.base import RegisterMap
     from enovates_modbus.eno_one import EnoOneClient
-    from homeassistant.config_entries import ConfigEntry
-    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-    from homeassistant.loader import Integration
+
+    from .helpers import EnovatesDUCoordinator
 
 
 type EnovatesConfigEntry = ConfigEntry[EnovatesData]
@@ -20,10 +22,11 @@ type EnovatesConfigEntry = ConfigEntry[EnovatesData]
 class EnovatesData:
     """Data for the Enovates integration."""
 
-    client: EnoOneClient
+    ems_control: bool
+    clients: dict[int, EnoOneClient]
     integration: Integration
-    coordinators: dict[type[RegisterMap], DataUpdateCoordinator[RegisterMap]]
+    coordinators: dict[tuple[int, type[RegisterMap]], EnovatesDUCoordinator]
 
-    def coordinator[T: RegisterMap](self, register_map: type[T]) -> DataUpdateCoordinator[T]:
+    def coordinator[T: RegisterMap](self, device_id: int, register_map: type[T]) -> EnovatesDUCoordinator[T]:
         """Get the coordinator for a Register Map type."""
-        return self.coordinators[register_map]
+        return self.coordinators[(device_id, register_map)]

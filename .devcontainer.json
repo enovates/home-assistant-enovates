@@ -1,4 +1,5 @@
 {
+  "name": "ludeeus/integration_blueprint",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -33,7 +34,6 @@
     8123
   ],
   "image": "mcr.microsoft.com/devcontainers/python:3.13",
-  "name": "ludeeus/integration_blueprint",
   "portsAttributes": {
     "8123": {
       "label": "Home Assistant",

@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import voluptuous as vol
-from enovates_modbus import EnoOneClient
 from homeassistant import config_entries
-from homeassistant.const import CONF_DEVICE_ID, CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from pymodbus.exceptions import ModbusException
 
-from .const import DOMAIN, LOGGER
+from enovates_modbus import EnoOneClient
+
+from .const import CONF_DUAL_PORT, CONF_EMS_CONTROL, DOMAIN, LOGGER
 
 
 class EnovatesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -25,7 +26,7 @@ class EnovatesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         errors = {}
         if user_input is not None:
-            client = EnoOneClient(user_input[CONF_HOST], user_input[CONF_PORT], user_input[CONF_DEVICE_ID])
+            client = EnoOneClient(user_input[CONF_HOST], user_input[CONF_PORT], 1, mb_timeout=1, mb_retries=10)
             try:
                 await client.check_version()
             except (ConnectionError, ModbusException) as exception:
@@ -39,8 +40,20 @@ class EnovatesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(diag.serial_nr)
 
                 self._abort_if_unique_id_configured()
+
+                if user_input[CONF_EMS_CONTROL]:
+                    try:
+                        await client.get_transaction_token()
+                    except (ConnectionError, ModbusException) as exception:
+                        LOGGER.error(exception)
+                        errors["base"] = "ems_control_disabled"
+                    except Exception as exception:  # noqa: BLE001
+                        LOGGER.exception(exception)
+                        errors["base"] = "unknown"
+
+            if not errors:
                 return self.async_create_entry(
-                    title=diag.serial_nr,
+                    title=f"ENO one - {diag.serial_nr}",
                     data=user_input,
                 )
 
@@ -61,10 +74,13 @@ class EnovatesFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         default=(user_input or {}).get(CONF_PORT, 502),
                     ): cv.port,
                     vol.Required(
-                        CONF_DEVICE_ID,
-                        default=(user_input or {}).get(CONF_DEVICE_ID, 1),
-                        description="Only relevant for EVSEs with more than 1 socket or cable.",
-                    ): vol.All(vol.Coerce(int), vol.Range(min=1, max=2)),
+                        CONF_DUAL_PORT,
+                        default=(user_input or {}).get(CONF_DUAL_PORT, False),
+                    ): selector.BooleanSelector(),
+                    vol.Required(
+                        CONF_EMS_CONTROL,
+                        default=(user_input or {}).get(CONF_EMS_CONTROL, False),
+                    ): selector.BooleanSelector(),
                 },
             ),
             errors=errors,

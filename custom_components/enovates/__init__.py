@@ -21,6 +21,12 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
+from homeassistant.const import CONF_HOST, CONF_PORT, Platform
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.loader import async_get_loaded_integration
+from pymodbus import ModbusException
+
 from enovates_modbus.base import RegisterMap
 from enovates_modbus.eno_one import (
     APIVersion,
@@ -33,13 +39,10 @@ from enovates_modbus.eno_one import (
     State,
     TransactionToken,
 )
-from homeassistant.const import CONF_DEVICE_ID, CONF_HOST, CONF_PORT, Platform
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.loader import async_get_loaded_integration
 
-from .const import DOMAIN, LOGGER
+from .const import CONF_DUAL_PORT, CONF_EMS_CONTROL, DOMAIN, LOGGER
 from .data import EnovatesData
+from .helpers import EnovatesDUCoordinator
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -52,7 +55,7 @@ if TYPE_CHECKING:
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
-    # Platform.SWITCH,
+    Platform.NUMBER,
 ]
 
 REFRESH_FREQUENCY: dict[type[RegisterMap], timedelta] = {
@@ -61,47 +64,57 @@ REFRESH_FREQUENCY: dict[type[RegisterMap], timedelta] = {
     TransactionToken: timedelta(minutes=1),
     Mode3Details: timedelta(seconds=10),
     State: timedelta(seconds=10),
+    EMSLimit: timedelta(seconds=10),
     Measurements: timedelta(seconds=1),
     CurrentOffered: timedelta(seconds=1),
-    EMSLimit: timedelta(seconds=1),
 }
-
-
-def update_method[T: RegisterMap](entry: EnovatesConfigEntry, rm_type: type[T]) -> Callable[[], Awaitable[T]]:
-    """Update the coordinator."""
-
-    async def update() -> T:
-        return await entry.runtime_data.client.fetch(rm_type)
-
-    return update
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: EnovatesConfigEntry) -> bool:
     """Set up Enovates config entry for Home Assistant using the UI."""
-    coordinators = {
-        rm_type: DataUpdateCoordinator(
-            hass=hass,
-            logger=LOGGER,
-            name=DOMAIN,
-            config_entry=entry,
-            update_interval=interval,
-            update_method=update_method(entry, rm_type),
-        )
-        for rm_type, interval in REFRESH_FREQUENCY.items()
-    }
 
-    entry.runtime_data = EnovatesData(
-        client=EnoOneClient(
-            host=entry.data[CONF_HOST],
-            port=entry.data[CONF_PORT],
-            device_id=entry.data[CONF_DEVICE_ID],
-        ),
+    def update_method[T: RegisterMap](device_id: int, rm_type: type[T]) -> Callable[[], Awaitable[T]]:
+        # Capture the device_id and register map in the closure
+        async def update() -> T:
+            try:
+                return await entry.runtime_data.clients[device_id].fetch(rm_type)
+            except (ConnectionError, ModbusException) as e:
+                raise HomeAssistantError(e) from e
+
+        return update
+
+    device_ids = (1, 2) if entry.data[CONF_DUAL_PORT] else (1,)
+
+    ed = EnovatesData(
+        ems_control=entry.data[CONF_EMS_CONTROL],
         integration=async_get_loaded_integration(hass, entry.domain),
-        coordinators=coordinators,
+        clients={
+            i: EnoOneClient(
+                host=entry.data[CONF_HOST],
+                port=entry.data[CONF_PORT],
+                device_id=i,
+                mb_retries=3,
+                mb_timeout=3,
+            )
+            for i in device_ids
+        },
+        coordinators={
+            (i, rm_type): EnovatesDUCoordinator(
+                hass=hass,
+                logger=LOGGER,
+                name=DOMAIN,
+                config_entry=entry,
+                update_interval=interval,
+                update_method=update_method(i, rm_type),
+                always_update=False,
+            )
+            for rm_type, interval in REFRESH_FREQUENCY.items()
+            if (entry.data[CONF_EMS_CONTROL] or not issubclass(rm_type, TransactionToken))
+            for i in device_ids
+        },
     )
-
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    for c in coordinators.values():
+    entry.runtime_data = ed
+    for c in ed.coordinators.values():
         await c.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
