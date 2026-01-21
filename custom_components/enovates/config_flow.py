@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import voluptuous as vol
+from enovates_modbus import EnoOneClient
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from pymodbus.exceptions import ModbusException
-
-from enovates_modbus import EnoOneClient
 
 from .const import CONF_DUAL_PORT, CONF_EMS_CONTROL, DOMAIN, LOGGER
 

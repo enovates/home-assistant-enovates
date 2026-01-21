@@ -13,9 +13,18 @@ ignore = [
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
     "D203", # no-blank-line-before-class (incompatible with formatter)
     "D212", # multi-line-summary-first-line (incompatible with formatter)
-    "COM812", # incompatible with formatter
-    "ISC001", # incompatible with formatter
-    "E501",  # Formatter has some leeway this rule doesn't understand
+
+    # May conflict with the formatter, https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "E501",
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q",
+    "COM812",
+    "COM819",
 ]
 
 [lint.flake8-pytest-style]
@@ -26,3 +35,10 @@ keep-runtime-typing = true
 
 [lint.mccabe]
 max-complexity = 25
+
+[lint.per-file-ignores]
+"tests/**/*" = [
+    "S101",  # use of assert is valid for testing
+    "ANN201",  # tests don't need return annotations
+    "INP001",  # tests don't need to be a package/namespace
+]

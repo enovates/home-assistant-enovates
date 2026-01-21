@@ -40,6 +40,12 @@ Run `hass --config config --debug --skip-pip-packages enovates-modbus` in the re
 All pre-commit checks should pass before you push your code.
 Merge requests with violations are likely to be ignored until they are fully compliant.
 
+### Testing
+
+Run tests via `pytest`.
+
+This repo uses [pytest-homeassistant-custom-component](https://github.com/MatthewFlamm/pytest-homeassistant-custom-component) to enable easy testing custom components with HA related fixtures.
+
 ## Attribution
 
 Thanks to Christof Mahieu (@maju101) for providing the initial implementation during his time at Enovates.
