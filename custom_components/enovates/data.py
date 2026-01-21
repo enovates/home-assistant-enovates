@@ -6,11 +6,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
-    from homeassistant.loader import Integration
-
     from enovates_modbus.base import RegisterMap
     from enovates_modbus.eno_one import EnoOneClient
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.loader import Integration
 
     from .helpers import EnovatesDUCoordinator
 

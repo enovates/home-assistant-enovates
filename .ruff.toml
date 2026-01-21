@@ -41,9 +41,12 @@ max-complexity = 25
 [lint.per-file-ignores]
 "tests/**/*" = [
     "S101",  # use of assert is valid for testing
+    "ANN001",  # no need for type annotations on all fixtures
+    "ARG001",  # tests may declare fixtures as "unused" args
     "ANN201",  # tests don't need return annotations
     "INP001",  # tests don't need to be a package/namespace
     "S106",  # tests may contain hardcoded fake passwords
+    "D103",  # tests don't need docstrings everywhere
 ]
 "scripts/**/*" = [
     "S101",
