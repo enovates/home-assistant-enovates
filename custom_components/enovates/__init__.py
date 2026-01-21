@@ -21,12 +21,6 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from homeassistant.const import CONF_HOST, CONF_PORT, Platform
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
-from homeassistant.loader import async_get_loaded_integration
-from pymodbus import ModbusException
-
 from enovates_modbus.base import RegisterMap
 from enovates_modbus.eno_one import (
     APIVersion,
@@ -39,10 +33,15 @@ from enovates_modbus.eno_one import (
     State,
     TransactionToken,
 )
+from homeassistant.const import CONF_HOST, CONF_PORT, Platform
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.loader import async_get_loaded_integration
+from pymodbus import ModbusException
 
 from .const import CONF_DUAL_PORT, CONF_EMS_CONTROL, DOMAIN, LOGGER
+from .coordinator import EnovatesDUCoordinator
 from .data import EnovatesData
-from .helpers import EnovatesDUCoordinator
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -58,6 +57,7 @@ PLATFORMS: list[Platform] = [
     Platform.NUMBER,
 ]
 
+# Update in docs if changed!
 REFRESH_FREQUENCY: dict[type[RegisterMap], timedelta] = {
     APIVersion: timedelta(days=1),
     Diagnostics: timedelta(days=1),
@@ -79,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: EnovatesConfigEntry) -> 
             try:
                 return await entry.runtime_data.clients[device_id].fetch(rm_type)
             except (ConnectionError, ModbusException) as e:
-                raise HomeAssistantError(e) from e
+                raise UpdateFailed(f"The device is unavailable: {e!r}") from e
 
         return update
 
@@ -125,7 +125,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: EnovatesConfigEntry) -> 
 
 async def async_unload_entry(hass: HomeAssistant, entry: EnovatesConfigEntry) -> bool:
     """Handle removal of an entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        for client in entry.runtime_data.clients.values():
+            client.client.close()
+    return unload_ok
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: EnovatesConfigEntry) -> None:

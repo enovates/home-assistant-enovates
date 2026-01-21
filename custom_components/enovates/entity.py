@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+from enovates_modbus.base import RegisterMap
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
 
-from enovates_modbus.base import RegisterMap
-
 
 class EnovatesEntity(CoordinatorEntity[DataUpdateCoordinator[RegisterMap]]):
     """EnovatesEntity class."""
+
+    _attr_has_entity_name = True
 
     def __init__(self, coordinator: DataUpdateCoordinator[RegisterMap]) -> None:
         """Initialize."""

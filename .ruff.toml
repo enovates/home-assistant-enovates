@@ -11,10 +11,12 @@ select = [
 
 ignore = [
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
-    "D203", # no-blank-line-before-class (incompatible with formatter)
-    "D212", # multi-line-summary-first-line (incompatible with formatter)
+    "TRY003", # Avoid specifying long messages outside the exception class
+    "EM102", # Exception must not use an f-string literal, assign to variable first
 
     # May conflict with the formatter, https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "D203", # no-blank-line-before-class
+    "D212", # multi-line-summary-first-line
     "E501",
     "W191",
     "E111",
@@ -41,4 +43,12 @@ max-complexity = 25
     "S101",  # use of assert is valid for testing
     "ANN201",  # tests don't need return annotations
     "INP001",  # tests don't need to be a package/namespace
+    "S106",  # tests may contain hardcoded fake passwords
+]
+"scripts/**/*" = [
+    "S101",
+    "ANN201",
+    "INP001",
+    "T201",
+    "PLR1722",
 ]

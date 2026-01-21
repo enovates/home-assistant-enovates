@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import voluptuous as vol
-from enovates_modbus import EnoOneClient
+from enovates_modbus.eno_one import EnoOneClient
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.helpers import config_validation as cv
