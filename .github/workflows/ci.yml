@@ -28,6 +28,9 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Create venv
+        run: uv venv
+
       - name: Install requirements
         run: uv pip install -r requirements.txt
 
@@ -50,6 +53,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+
+      - name: Create venv
+        run: uv venv
 
       - name: Install requirements
         run: uv pip install -r requirements.txt
