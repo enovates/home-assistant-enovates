@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -21,7 +22,7 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from .const import DOMAIN, LOGGER
+from .const import DOMAIN
 from .entity import EnovatesEntity
 
 if TYPE_CHECKING:
@@ -48,20 +49,27 @@ class EnovatesNumberEntityDescription[T: RegisterMap](NumberEntityDescription):
     set_value_fn: Callable[[EnoOneClient, float], Any]
 
 
-ENTITY_DESCRIPTIONS = (
-    EnovatesNumberEntityDescription[EMSLimit](
-        entity_category=EntityCategory.DIAGNOSTIC,
-        key="ems_limit",
-        name="EMS Limit",
-        rm_type=EMSLimit,
-        get_value_fn=lambda api: api.get_ems_limit(),
-        set_value_fn=lambda api, value: api.set_ems_limit(int(value)),
-        native_min_value=-1,
-        native_max_value=32_000,
-        device_class=NumberDeviceClass.CURRENT,
-        native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
-    ),
-)
+def _entity_description(ports: list[int]) -> dict[int, list[EnovatesNumberEntityDescription]]:
+    descriptions = (
+        EnovatesNumberEntityDescription[EMSLimit](
+            entity_category=EntityCategory.DIAGNOSTIC,
+            key="ems_limit",
+            name="EMS Limit",
+            rm_type=EMSLimit,
+            get_value_fn=lambda api: api.get_ems_limit(),
+            set_value_fn=lambda api, value: api.set_ems_limit(int(value)),
+            native_min_value=-1,
+            native_max_value=32_000,
+            device_class=NumberDeviceClass.CURRENT,
+            native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
+        ),
+    )
+
+    multi_port = len(ports) > 1
+    return {
+        port: [dataclasses.replace(ed, key=f"{ed.key}_{port}", name=f"{ed.name} Port {port}") if multi_port else ed for ed in descriptions]
+        for port in ports
+    }
 
 
 async def async_setup_entry(
@@ -75,16 +83,16 @@ async def async_setup_entry(
 
     diagnostics = await entry.runtime_data.clients[1].get_diagnostics()
 
-    async_add_entities(
-        EnovatesNumberEntity(
-            diagnostics=diagnostics,
-            coordinator=entry.runtime_data.coordinator(i, entity_description.rm_type),
-            entity_description=entity_description,
-            client=entry.runtime_data.clients[i],
+    for device_id, eds in _entity_description(sorted(entry.runtime_data.clients.keys())).items():
+        async_add_entities(
+            EnovatesNumberEntity(
+                diagnostics=diagnostics,
+                coordinator=entry.runtime_data.coordinator(device_id, entity_description.rm_type),
+                entity_description=entity_description,
+                client=entry.runtime_data.clients[device_id],
+            )
+            for entity_description in eds
         )
-        for entity_description in ENTITY_DESCRIPTIONS
-        for i in sorted(entry.runtime_data.clients.keys())
-    )
 
 
 class EnovatesNumberEntity[T: RegisterMap](EnovatesEntity, NumberEntity):
@@ -124,7 +132,5 @@ class EnovatesNumberEntity[T: RegisterMap](EnovatesEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
-        old = self._attr_native_value
         await self.entity_description.set_value_fn(self.client, value)
         self._attr_native_value = await self.entity_description.get_value_fn(self.client)
-        LOGGER.debug("async_set_native_value old=%s, value=%s, device=%s", old, value, self._attr_native_value)
