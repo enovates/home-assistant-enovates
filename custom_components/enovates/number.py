@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -23,7 +22,7 @@ from homeassistant.const import (
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .entity import EnovatesEntity
+from .entity import EnovatesEntity, transform_entity_descriptions_per_port
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -47,29 +46,29 @@ class EnovatesNumberEntityDescription[T: RegisterMap](NumberEntityDescription):
     rm_type: type[T]
     get_value_fn: Callable[[EnoOneClient], Any]
     set_value_fn: Callable[[EnoOneClient, float], Any]
+    scale: int = 1
 
 
 def _entity_description(ports: list[int]) -> dict[int, list[EnovatesNumberEntityDescription]]:
-    descriptions = (
+    descriptions = [
         EnovatesNumberEntityDescription[EMSLimit](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="ems_limit",
-            name="EMS Limit",
+            translation_key="ems_limit",
             rm_type=EMSLimit,
             get_value_fn=lambda api: api.get_ems_limit(),
-            set_value_fn=lambda api, value: api.set_ems_limit(int(value)),
+            # The only valid negative nr is -1.
+            set_value_fn=lambda api, value: api.set_ems_limit(int(value) if value >= 0 else -1),
             native_min_value=-1,
-            native_max_value=32_000,
+            native_max_value=32,
+            native_step=0.1,
             device_class=NumberDeviceClass.CURRENT,
-            native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
+            scale=1000,  # Actual unit is mA, but that is very unintuitive in the UI.
+            native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         ),
-    )
+    ]
 
-    multi_port = len(ports) > 1
-    return {
-        port: [dataclasses.replace(ed, key=f"{ed.key}_{port}", name=f"{ed.name} Port {port}") if multi_port else ed for ed in descriptions]
-        for port in ports
-    }
+    return transform_entity_descriptions_per_port(ports, descriptions)
 
 
 async def async_setup_entry(
@@ -96,7 +95,12 @@ async def async_setup_entry(
 
 
 class EnovatesNumberEntity[T: RegisterMap](EnovatesEntity, NumberEntity):
-    """Enovates number class."""
+    """
+    Enovates number class.
+
+    Requires that the entity description has scale, native_min_value, native_max_value and native_max_value set,
+    because unfortunately HA doesn't support using a different unit from the native unit in the UI.
+    """
 
     diagnostics: Diagnostics
     entity_description: EnovatesNumberEntityDescription
@@ -125,12 +129,18 @@ class EnovatesNumberEntity[T: RegisterMap](EnovatesEntity, NumberEntity):
             sw_version=diagnostics.firmware_version,
         )
 
+    async def _read(self) -> None:
+        ed = self.entity_description
+        native = await ed.get_value_fn(self.client)
+        self._attr_native_value = min(ed.native_max_value, max(ed.native_min_value, native / ed.scale))
+
     async def async_added_to_hass(self) -> None:
         """Restore state from device."""
         await super().async_added_to_hass()
-        self._attr_native_value = await self.entity_description.get_value_fn(self.client)
+        await self._read()
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
-        await self.entity_description.set_value_fn(self.client, value)
-        self._attr_native_value = await self.entity_description.get_value_fn(self.client)
+        ed = self.entity_description
+        await ed.set_value_fn(self.client, min(ed.native_max_value, max(ed.native_min_value, value)) * ed.scale)
+        await self._read()

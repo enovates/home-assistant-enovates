@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -37,7 +36,7 @@ from homeassistant.const import (
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .entity import EnovatesEntity
+from .entity import EnovatesEntity, transform_entity_descriptions_per_port
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -70,15 +69,14 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[APIVersion](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="api_version",
-            name="API version",
-            icon="mdi:format-quote-close",
+            translation_key="api_version",
             rm_type=APIVersion,
             value_fn=lambda data: f"{data.major}.{data.minor}",
         ),
         EnovatesSensorEntityDescription[State](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="max_amp_per_phase",
-            name="Max amps per phase",
+            translation_key="max_amp_per_phase",
             rm_type=State,
             value_fn=lambda data: data.max_amp_per_phase,
             native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
@@ -87,7 +85,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="installation_current_l1",
-            name="Installation Current L1",
+            translation_key="installation_current",
+            translation_placeholders={"phase": "1"},
             rm_type=Measurements,
             value_fn=lambda data: data.installation_current_l1,
             state_class=SensorStateClass.MEASUREMENT,
@@ -99,7 +98,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="installation_current_l2",
-            name="Installation Current L2",
+            translation_key="installation_current",
+            translation_placeholders={"phase": "2"},
             rm_type=Measurements,
             value_fn=lambda data: data.installation_current_l2,
             state_class=SensorStateClass.MEASUREMENT,
@@ -111,7 +111,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="installation_current_l3",
-            name="Installation Current L3",
+            translation_key="installation_current",
+            translation_placeholders={"phase": "3"},
             rm_type=Measurements,
             value_fn=lambda data: data.installation_current_l3,
             state_class=SensorStateClass.MEASUREMENT,
@@ -123,42 +124,37 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Diagnostics](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="manufacturer",
-            name="Manufacturer",
+            translation_key="manufacturer",
             rm_type=Diagnostics,
             value_fn=lambda data: data.manufacturer,
-            icon="mdi:factory",
         ),
         EnovatesSensorEntityDescription[Diagnostics](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="vendor_id",
-            name="Vendor Id",
+            translation_key="vendor_id",
             rm_type=Diagnostics,
             value_fn=lambda data: data.vendor_id,
-            icon="mdi:factory",
         ),
         EnovatesSensorEntityDescription[Diagnostics](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="serial_nr",
-            name="Serial Nr",
+            translation_key="serial_nr",
             rm_type=Diagnostics,
             value_fn=lambda data: data.serial_nr,
-            icon="mdi:identifier",
         ),
         EnovatesSensorEntityDescription[Diagnostics](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="model_id",
-            name="Model Id",
+            translation_key="model_id",
             rm_type=Diagnostics,
             value_fn=lambda data: data.model_id,
-            icon="mdi:identifier",
         ),
         EnovatesSensorEntityDescription[Diagnostics](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="firmware_version",
-            name="Firmware Version",
+            translation_key="firmware_version",
             rm_type=Diagnostics,
             value_fn=lambda data: data.firmware_version,
-            icon="mdi:format-quote-close",
         ),
     ]
 
@@ -166,25 +162,23 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[State](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="number_of_phases",
-            name="Number of phases",
-            icon="mdi:transmission-tower",
+            translation_key="number_of_phases",
             rm_type=State,
             value_fn=lambda data: data.number_of_phases,
         ),
         EnovatesSensorEntityDescription[State](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="lock_state",
-            name="Lock state",
-            icon="mdi:lock-question",
+            translation_key="lock_state",
             rm_type=State,
             value_fn=lambda data: data.lock_state.name,
             device_class=SensorDeviceClass.ENUM,
             options=[s.name for s in LockState],
         ),
         EnovatesSensorEntityDescription[State](
+            entity_category=EntityCategory.DIAGNOSTIC,
             key="led_color",
-            name="LED color",
-            icon="mdi:led-on",
+            translation_key="led_color",
             rm_type=State,
             value_fn=lambda data: data.led_color.name,
             device_class=SensorDeviceClass.ENUM,
@@ -193,7 +187,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="current_l1",
-            name="Current L1",
+            translation_key="current",
+            translation_placeholders={"phase": "1"},
             rm_type=Measurements,
             value_fn=lambda data: data.current_l1,
             state_class=SensorStateClass.MEASUREMENT,
@@ -205,7 +200,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="current_l2",
-            name="Current L2",
+            translation_key="current",
+            translation_placeholders={"phase": "2"},
             rm_type=Measurements,
             value_fn=lambda data: data.current_l2,
             state_class=SensorStateClass.MEASUREMENT,
@@ -217,7 +213,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="current_l3",
-            name="Current L3",
+            translation_key="current",
+            translation_placeholders={"phase": "3"},
             rm_type=Measurements,
             value_fn=lambda data: data.current_l3,
             state_class=SensorStateClass.MEASUREMENT,
@@ -229,7 +226,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="voltage_l1",
-            name="Voltage L1",
+            translation_key="voltage",
+            translation_placeholders={"phase": "1"},
             rm_type=Measurements,
             value_fn=lambda data: data.voltage_l1,
             state_class=SensorStateClass.MEASUREMENT,
@@ -240,7 +238,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="voltage_l2",
-            name="Voltage L2",
+            translation_key="voltage",
+            translation_placeholders={"phase": "2"},
             rm_type=Measurements,
             value_fn=lambda data: data.voltage_l2,
             state_class=SensorStateClass.MEASUREMENT,
@@ -251,7 +250,8 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="voltage_l3",
-            name="Voltage L3",
+            translation_key="voltage",
+            translation_placeholders={"phase": "3"},
             rm_type=Measurements,
             value_fn=lambda data: data.voltage_l3,
             state_class=SensorStateClass.MEASUREMENT,
@@ -261,7 +261,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Measurements](
             key="charger_active_power_total",
-            name="Chargering Power",
+            translation_key="charger_active_power_total",
             rm_type=Measurements,
             value_fn=lambda data: data.charger_active_power_total,
             state_class=SensorStateClass.MEASUREMENT,
@@ -274,7 +274,8 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Total is more useful.
             key="charger_active_power_l1",
-            name="Chargering Power L1",
+            translation_key="charger_active_power",
+            translation_placeholders={"phase": "1"},
             rm_type=Measurements,
             value_fn=lambda data: data.charger_active_power_l1,
             state_class=SensorStateClass.MEASUREMENT,
@@ -287,7 +288,8 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Total is more useful.
             key="charger_active_power_l2",
-            name="Chargering Power L2",
+            translation_key="charger_active_power",
+            translation_placeholders={"phase": "2"},
             rm_type=Measurements,
             value_fn=lambda data: data.charger_active_power_l2,
             state_class=SensorStateClass.MEASUREMENT,
@@ -300,7 +302,8 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Total is more useful.
             key="charger_active_power_l3",
-            name="Chargering Power L3",
+            translation_key="charger_active_power",
+            translation_placeholders={"phase": "3"},
             rm_type=Measurements,
             value_fn=lambda data: data.charger_active_power_l3,
             state_class=SensorStateClass.MEASUREMENT,
@@ -311,8 +314,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Measurements](
             key="active_energy_import_total",
-            name="Charged Energy",
-            icon="mdi:ev-station",
+            translation_key="active_energy_import_total",
             rm_type=Measurements,
             value_fn=lambda data: data.active_energy_import_total,
             state_class=SensorStateClass.TOTAL,
@@ -325,8 +327,7 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="state_num",
-            name="Mode 3 State (enum)",
-            icon="mdi:ev-station",
+            translation_key="state_num",
             rm_type=Mode3Details,
             value_fn=lambda data: data.state_num.name,
             device_class=SensorDeviceClass.ENUM,
@@ -336,8 +337,7 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="state_str",
-            name="Mode 3 State (name)",
-            icon="mdi:ev-station",
+            translation_key="state_str",
             rm_type=Mode3Details,
             value_fn=lambda data: data.state_str,
         ),
@@ -345,7 +345,7 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="pwm_amp",
-            name="Mode 3 PWM (Amps)",
+            translation_key="pwm_amp",
             rm_type=Mode3Details,
             value_fn=lambda data: data.pwm_amp,
             state_class=SensorStateClass.MEASUREMENT,
@@ -358,8 +358,7 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="pwm",
-            name="Mode 3 PWM (%)",
-            icon="mdi:percent",
+            translation_key="pwm",
             rm_type=Mode3Details,
             value_fn=lambda data: data.pwm / 10,
             state_class=SensorStateClass.MEASUREMENT,
@@ -370,7 +369,7 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="pp",
-            name="Mode 3 Proximity Pilot (cable rating)",
+            translation_key="pp",
             rm_type=Mode3Details,
             value_fn=lambda data: data.pp,
             state_class=SensorStateClass.MEASUREMENT,
@@ -382,7 +381,7 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="cp_pos",
-            name="Mode 3 Control Pilot +",
+            translation_key="cp_pos",
             rm_type=Mode3Details,
             value_fn=lambda data: data.CP_pos,
             state_class=SensorStateClass.MEASUREMENT,
@@ -394,7 +393,7 @@ def _entity_descriptions(
             entity_category=EntityCategory.DIAGNOSTIC,
             entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="cp_neg",
-            name="Mode 3 Control Pilot -",
+            translation_key="cp_neg",
             rm_type=Mode3Details,
             value_fn=lambda data: data.CP_neg,
             state_class=SensorStateClass.MEASUREMENT,
@@ -405,7 +404,7 @@ def _entity_descriptions(
         EnovatesSensorEntityDescription[CurrentOffered](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="active_current_offered",
-            name="Active Current Offered",
+            translation_key="active_current_offered",
             rm_type=CurrentOffered,
             value_fn=lambda data: data.active_current_offered,
             state_class=SensorStateClass.MEASUREMENT,
@@ -420,8 +419,7 @@ def _entity_descriptions(
         per_port.append(
             EnovatesSensorEntityDescription[TransactionToken](
                 key="transaction_token",
-                name="Transaction Token",
-                icon="mdi:identifier",
+                translation_key="transaction_token",
                 rm_type=TransactionToken,
                 value_fn=lambda data: data.transaction_token,
             )
@@ -431,7 +429,7 @@ def _entity_descriptions(
             EnovatesSensorEntityDescription[EMSLimit](
                 entity_category=EntityCategory.DIAGNOSTIC,
                 key="ems_limit",
-                name="EMS Limit",
+                translation_key="ems_limit",
                 rm_type=EMSLimit,
                 value_fn=lambda data: data.ems_limit,
                 state_class=SensorStateClass.MEASUREMENT,
@@ -442,12 +440,7 @@ def _entity_descriptions(
             )
         )
 
-    multi_port = len(ports) > 1
-
-    return shared, {
-        port: [dataclasses.replace(ed, key=f"{ed.key}_{port}", name=f"{ed.name} Port {port}") if multi_port else ed for ed in per_port]
-        for port in ports
-    }
+    return shared, transform_entity_descriptions_per_port(ports, per_port)
 
 
 async def async_setup_entry(

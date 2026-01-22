@@ -44,7 +44,7 @@ rules:
     status: exempt
     comment: |
       This integration does not require authentication.
-  test-coverage: todo   # TODO
+  test-coverage: done
 
   # Gold
   devices: done
@@ -77,9 +77,9 @@ rules:
   entity-category: done
   entity-device-class: done
   entity-disabled-by-default: done
-  entity-translations: todo  # todo
-  exception-translations: todo  # todo
-  icon-translations: todo  # todo
+  entity-translations: done
+  exception-translations: done
+  icon-translations: done
   reconfiguration-flow: todo  # todo
   repair-issues: todo  # todo
   stale-devices:

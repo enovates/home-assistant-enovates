@@ -1,0 +1,100 @@
+{
+  "entity": {
+    "sensor": {
+      "active_energy_import_total": {
+        "default": "mdi:ev-station"
+      },
+      "active_energy_import_total_mp": {
+        "default": "mdi:ev-station"
+      },
+      "api_version": {
+        "default": "mdi:counter"
+      },
+      "firmware_version": {
+        "default": "mdi:counter"
+      },
+      "led_color": {
+        "default": "mdi:led-on",
+        "state": {
+          "OFF": "mdi:led-off"
+        }
+      },
+      "led_color_mp": {
+        "default": "mdi:led-on",
+        "state": {
+          "OFF": "mdi:led-off"
+        }
+      },
+      "lock_state": {
+        "default": "mdi:lock-question",
+        "state": {
+          "LOCKED": "mdi:lock",
+          "NO_LOCK_PRESENT": "mdi:lock-open-remove",
+          "UNLOCKED": "mdi:lock-open"
+        }
+      },
+      "lock_state_mp": {
+        "default": "mdi:lock-question",
+        "state": {
+          "LOCKED": "mdi:lock",
+          "NO_LOCK_PRESENT": "mdi:lock-open-remove",
+          "UNLOCKED": "mdi:lock-open"
+        }
+      },
+      "manufacturer": {
+        "default": "mdi:factory"
+      },
+      "manufacturer_mp": {
+        "default": "mdi:factory"
+      },
+      "model_id": {
+        "default": "mdi:factory"
+      },
+      "number_of_phases": {
+        "default": "mdi:transmission-tower"
+      },
+      "number_of_phases_mp": {
+        "default": "mdi:transmission-tower"
+      },
+      "pwm": {
+        "default": "mdi:percent"
+      },
+      "pwm_mp": {
+        "default": "mdi:percent"
+      },
+      "serial_nr": {
+        "default": "mdi:identifier"
+      },
+      "serial_nr_mp": {
+        "default": "mdi:identifier"
+      },
+      "state_num": {
+        "default": "mdi:state-machine"
+      },
+      "state_num_mp": {
+        "default": "mdi:state-machine"
+      },
+      "state_str": {
+        "default": "mdi:state-machine"
+      },
+      "state_str_mp": {
+        "default": "mdi:state-machine"
+      },
+      "transaction_token": {
+        "default": "mdi:credit-card",
+        "state": {
+          "": "mdi:credit-card-remove"
+        }
+      },
+      "transaction_token_mp": {
+        "default": "mdi:credit-card",
+        "state": {
+          "": "mdi:credit-card-remove"
+        }
+      },
+      "vendor_id": {
+        "default": "mdi:factory"
+      }
+    }
+  }
+}
