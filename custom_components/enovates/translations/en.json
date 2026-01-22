@@ -17,7 +17,7 @@
           "port": "Modbus TCP port"
         },
         "data_description": {
-          "dual_port": "Enable if your device has 2 charge points (sockets or cables).",
+          "dual_port": "Enable if your device has 2 connectors (sockets or cables).",
           "ems_control": "Enable if your want to control over the EMS current limit from Home Assistant. Only available if also enabled in your device.\nDisable to only enable monitoring."
         },
         "description": "The EMS setting on the EVSE must be enabled before this integration can be set up!"

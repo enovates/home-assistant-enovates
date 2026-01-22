@@ -5,6 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from enovates_modbus.base import RegisterMap
+from enovates_modbus.eno_one import (
+    Diagnostics,
+    EMSLimit,
+)
 from homeassistant.components.number import (
     NumberDeviceClass,
     NumberEntity,
@@ -16,25 +21,22 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from enovates_modbus.base import RegisterMap
-from enovates_modbus.eno_one import (
-    Diagnostics,
-    EMSLimit,
-)
-
 from .const import DOMAIN, LOGGER
 from .entity import EnovatesEntity
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from enovates_modbus.eno_one import EnoOneClient
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-    from enovates_modbus import EnoOneClient
-
     from .data import EnovatesConfigEntry
+
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 
 @dataclass(frozen=True, kw_only=True)

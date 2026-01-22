@@ -6,14 +6,6 @@ import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntity,
-    BinarySensorEntityDescription,
-)
-from homeassistant.const import EntityCategory
-from homeassistant.helpers.device_registry import DeviceInfo
-
 from enovates_modbus.base import RegisterMap
 from enovates_modbus.eno_one import (
     CurrentOffered,
@@ -23,6 +15,13 @@ from enovates_modbus.eno_one import (
     Mode3State,
     State,
 )
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+    BinarySensorEntityDescription,
+)
+from homeassistant.const import EntityCategory
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
 from .entity import EnovatesEntity
@@ -35,6 +34,10 @@ if TYPE_CHECKING:
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
     from .data import EnovatesConfigEntry
+
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -6,6 +6,20 @@ import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from enovates_modbus.base import RegisterMap
+from enovates_modbus.eno_one import (
+    APIVersion,
+    CurrentOffered,
+    Diagnostics,
+    EMSLimit,
+    LEDColor,
+    LockState,
+    Measurements,
+    Mode3Details,
+    Mode3State,
+    State,
+    TransactionToken,
+)
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -22,21 +36,6 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from enovates_modbus.base import RegisterMap
-from enovates_modbus.eno_one import (
-    APIVersion,
-    CurrentOffered,
-    Diagnostics,
-    EMSLimit,
-    LEDColor,
-    LockState,
-    Measurements,
-    Mode3Details,
-    Mode3State,
-    State,
-    TransactionToken,
-)
-
 from .const import DOMAIN
 from .entity import EnovatesEntity
 
@@ -48,6 +47,10 @@ if TYPE_CHECKING:
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
     from .data import EnovatesConfigEntry
+
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -269,6 +272,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Total is more useful.
             key="charger_active_power_l1",
             name="Chargering Power L1",
             rm_type=Measurements,
@@ -281,6 +285,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Total is more useful.
             key="charger_active_power_l2",
             name="Chargering Power L2",
             rm_type=Measurements,
@@ -293,6 +298,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Total is more useful.
             key="charger_active_power_l3",
             name="Chargering Power L3",
             rm_type=Measurements,
@@ -317,6 +323,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="state_num",
             name="Mode 3 State (enum)",
             icon="mdi:ev-station",
@@ -327,6 +334,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="state_str",
             name="Mode 3 State (name)",
             icon="mdi:ev-station",
@@ -335,6 +343,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="pwm_amp",
             name="Mode 3 PWM (Amps)",
             rm_type=Mode3Details,
@@ -347,6 +356,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="pwm",
             name="Mode 3 PWM (%)",
             icon="mdi:percent",
@@ -358,6 +368,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="pp",
             name="Mode 3 Proximity Pilot (cable rating)",
             rm_type=Mode3Details,
@@ -369,6 +380,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="cp_pos",
             name="Mode 3 Control Pilot +",
             rm_type=Mode3Details,
@@ -380,6 +392,7 @@ def _entity_descriptions(
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,  # Mode 3 details are not really end-user things
             key="cp_neg",
             name="Mode 3 Control Pilot -",
             rm_type=Mode3Details,
