@@ -61,10 +61,10 @@ PLATFORMS: list[Platform] = [
 REFRESH_FREQUENCY: dict[type[RegisterMap], timedelta] = {
     APIVersion: timedelta(days=1),
     Diagnostics: timedelta(days=1),
-    TransactionToken: timedelta(minutes=1),
-    Mode3Details: timedelta(seconds=10),
-    State: timedelta(seconds=10),
-    EMSLimit: timedelta(seconds=10),
+    TransactionToken: timedelta(seconds=1),
+    Mode3Details: timedelta(seconds=1),
+    State: timedelta(seconds=1),
+    EMSLimit: timedelta(seconds=1),
     Measurements: timedelta(seconds=1),
     CurrentOffered: timedelta(seconds=1),
 }

@@ -108,11 +108,9 @@ A subset of these entities are show in the default dashboard. The rest is access
 
 The integration polls the device via Modbus TCP (through the [enovates-modbus](https://github.com/enovates/enovates-modbus) library) asynchronously. To limit the load on the device, not all entities have the same polling rates. See the section above for the exact list:
 
-+ API version: Daily
-+ Diagnostics: Daily
-+ Transaction Token: Every minute (assuming EMS Control mode is enabled)
-+ Mode 3 related entities: Every 10 seconds
-+ Others (State, Measurements, EMS Limit and Current Offered): Every second
++ API version, Diagnostics: Daily
++ Others: Every second
+
 
 ## Troubleshooting
 
