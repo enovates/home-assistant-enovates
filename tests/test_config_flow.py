@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from enovates_modbus.eno_one import Diagnostics, TransactionToken
-from homeassistant.config_entries import SOURCE_USER
+from homeassistant.config_entries import SOURCE_RECONFIGURE, SOURCE_USER
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pymodbus import ModbusException
@@ -348,3 +348,319 @@ async def test_duplicate_entry(eno_one_client: AsyncMock, hass: HomeAssistant) -
     assert result2["reason"] == "already_configured"
     await hass.async_block_till_done()
     assert len(mock_setup_entry.mock_calls) == 0
+
+
+@pytest.mark.asyncio
+@patch("custom_components.enovates.config_flow.EnoOneClient", autospec=True)
+async def test_reconfigure(eno_one_client: AsyncMock, hass: HomeAssistant):
+    """Test reconfigure flow."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="ENO one - 7",
+        data={
+            "host": "127.0.0.1",
+            "port": 502,
+            "dual_port": True,
+            "ems_control": True,
+        },
+        unique_id="7",
+    )
+
+    eno_one_client.return_value.check_version.return_value = True
+    eno_one_client.return_value.get_diagnostics.return_value = Diagnostics(
+        manufacturer="Enovates TEST",
+        vendor_id="eNovates TEST",
+        serial_nr="7",
+        model_id="42",
+        firmware_version="3.14",
+    )
+    eno_one_client.return_value.get_transaction_token.return_value = TransactionToken(transaction_token="TEST")
+
+    with patch(
+        "custom_components.enovates.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        entry.add_to_hass(hass)
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id})
+
+        assert result["type"] == FlowResultType.FORM
+        assert result["step_id"] == "reconfigure"
+        assert result["errors"] == {}
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "127.0.0.1",
+                "port": 502,
+                "dual_port": False,
+                "ems_control": True,
+            },
+        )
+
+        eno_one_client.assert_called_once()
+        eno_one_client.return_value.check_version.assert_called_once()
+
+        assert result2["type"] == FlowResultType.ABORT
+        assert result2["reason"] == "reconfigure_successful"
+        await hass.async_block_till_done()
+        assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.asyncio
+@patch("custom_components.enovates.config_flow.EnoOneClient", autospec=True)
+async def test_reconfigure_wrong_device(eno_one_client: AsyncMock, hass: HomeAssistant) -> None:
+    """Test reconfiguring into wrong device handling."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="ENO one - 7",
+        data={
+            "host": "127.0.0.1",
+            "port": 502,
+            "dual_port": False,
+            "ems_control": True,
+        },
+        unique_id="7",
+    )
+    entry.add_to_hass(hass)
+
+    eno_one_client.return_value.check_version.return_value = True
+    eno_one_client.return_value.get_diagnostics.return_value = Diagnostics(
+        manufacturer="Enovates TEST",
+        vendor_id="eNovates TEST",
+        serial_nr="not 7",
+        model_id="42",
+        firmware_version="3.14",
+    )
+
+    with patch(
+        "custom_components.enovates.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id})
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {}
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "127.0.0.1",
+                "port": 502,
+                "dual_port": False,
+                "ems_control": False,
+            },
+        )
+
+        eno_one_client.assert_called_once()
+        eno_one_client.return_value.check_version.assert_called_once()
+
+        assert result2["type"] == FlowResultType.ABORT
+        assert result2["reason"] == "wrong_device"
+        await hass.async_block_till_done()
+        assert len(mock_setup_entry.mock_calls) == 0
+
+
+@pytest.mark.asyncio
+@patch("custom_components.enovates.config_flow.EnoOneClient", autospec=True)
+async def test_reconfigure_connection_error(eno_one_client: AsyncMock, hass: HomeAssistant) -> None:
+    """Test reconfiguring wrong ip/port."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="ENO one - 7",
+        data={
+            "host": "127.0.0.1",
+            "port": 502,
+            "dual_port": False,
+            "ems_control": True,
+        },
+        unique_id="7",
+    )
+    entry.add_to_hass(hass)
+
+    eno_one_client.return_value.check_version.side_effect = ConnectionError()
+
+    with patch(
+        "custom_components.enovates.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id})
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {}
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "127.0.0.1",
+                "port": 502,
+                "dual_port": False,
+                "ems_control": False,
+            },
+        )
+
+        eno_one_client.assert_called_once()
+        eno_one_client.return_value.check_version.assert_called_once()
+
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["errors"] == {"base": "connection"}
+
+        await hass.async_block_till_done()
+        assert len(mock_setup_entry.mock_calls) == 0
+
+
+@pytest.mark.asyncio
+@patch("custom_components.enovates.config_flow.EnoOneClient", autospec=True)
+async def test_reconfigure_generic_error(eno_one_client: AsyncMock, hass: HomeAssistant) -> None:
+    """Test reconfiguring other error."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="ENO one - 7",
+        data={
+            "host": "127.0.0.1",
+            "port": 502,
+            "dual_port": False,
+            "ems_control": True,
+        },
+        unique_id="7",
+    )
+    entry.add_to_hass(hass)
+
+    eno_one_client.return_value.check_version.side_effect = Exception()
+
+    with patch(
+        "custom_components.enovates.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id})
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {}
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "127.0.0.1",
+                "port": 502,
+                "dual_port": False,
+                "ems_control": False,
+            },
+        )
+
+        eno_one_client.assert_called_once()
+        eno_one_client.return_value.check_version.assert_called_once()
+
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["errors"] == {"base": "unknown"}
+
+        await hass.async_block_till_done()
+        assert len(mock_setup_entry.mock_calls) == 0
+
+
+@pytest.mark.asyncio
+@patch("custom_components.enovates.config_flow.EnoOneClient", autospec=True)
+async def test_reconfigure_no_ems_control(eno_one_client: AsyncMock, hass: HomeAssistant) -> None:
+    """Test reconfiguring with wrong ems setting."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="ENO one - 7",
+        data={
+            "host": "127.0.0.1",
+            "port": 502,
+            "dual_port": False,
+            "ems_control": False,
+        },
+        unique_id="7",
+    )
+    entry.add_to_hass(hass)
+
+    eno_one_client.return_value.check_version.return_value = True
+    eno_one_client.return_value.get_transaction_token.side_effect = ModbusException("[unit test] no ems control enabled.")
+    eno_one_client.return_value.get_diagnostics.return_value = Diagnostics(
+        manufacturer="Enovates TEST",
+        vendor_id="eNovates TEST",
+        serial_nr="7",
+        model_id="42",
+        firmware_version="3.14",
+    )
+
+    with patch(
+        "custom_components.enovates.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id})
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {}
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "127.0.0.1",
+                "port": 502,
+                "dual_port": False,
+                "ems_control": True,
+            },
+        )
+
+        eno_one_client.assert_called_once()
+        eno_one_client.return_value.check_version.assert_called_once()
+
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["errors"] == {"base": "ems_control_disabled"}
+
+        await hass.async_block_till_done()
+        assert len(mock_setup_entry.mock_calls) == 0
+
+
+@pytest.mark.asyncio
+@patch("custom_components.enovates.config_flow.EnoOneClient", autospec=True)
+async def test_reconfigure_ems_check_exception(eno_one_client: AsyncMock, hass: HomeAssistant) -> None:
+    """Test reconfiguring with wrong ems setting."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="ENO one - 7",
+        data={
+            "host": "127.0.0.1",
+            "port": 502,
+            "dual_port": False,
+            "ems_control": False,
+        },
+        unique_id="7",
+    )
+    entry.add_to_hass(hass)
+
+    eno_one_client.return_value.check_version.return_value = True
+    eno_one_client.return_value.get_transaction_token.side_effect = Exception()
+    eno_one_client.return_value.get_diagnostics.return_value = Diagnostics(
+        manufacturer="Enovates TEST",
+        vendor_id="eNovates TEST",
+        serial_nr="7",
+        model_id="42",
+        firmware_version="3.14",
+    )
+
+    with patch(
+        "custom_components.enovates.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id})
+        assert result["type"] == FlowResultType.FORM
+        assert result["errors"] == {}
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "host": "127.0.0.1",
+                "port": 502,
+                "dual_port": False,
+                "ems_control": True,
+            },
+        )
+
+        eno_one_client.assert_called_once()
+        eno_one_client.return_value.check_version.assert_called_once()
+
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["errors"] == {"base": "unknown"}
+
+        await hass.async_block_till_done()
+        assert len(mock_setup_entry.mock_calls) == 0
