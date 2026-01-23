@@ -171,18 +171,18 @@ def _entity_descriptions(
             key="lock_state",
             translation_key="lock_state",
             rm_type=State,
-            value_fn=lambda data: data.lock_state.name,
+            value_fn=lambda data: data.lock_state.name.lower(),
             device_class=SensorDeviceClass.ENUM,
-            options=[s.name for s in LockState],
+            options=[s.name.lower() for s in LockState],
         ),
         EnovatesSensorEntityDescription[State](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="led_color",
             translation_key="led_color",
             rm_type=State,
-            value_fn=lambda data: data.led_color.name,
+            value_fn=lambda data: data.led_color.name.lower(),
             device_class=SensorDeviceClass.ENUM,
-            options=[s.name for s in LEDColor],
+            options=[s.name.lower() for s in LEDColor],
         ),
         EnovatesSensorEntityDescription[Measurements](
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -329,9 +329,9 @@ def _entity_descriptions(
             key="state_num",
             translation_key="state_num",
             rm_type=Mode3Details,
-            value_fn=lambda data: data.state_num.name,
+            value_fn=lambda data: data.state_num.name.lower(),
             device_class=SensorDeviceClass.ENUM,
-            options=[s.name for s in Mode3State],
+            options=[s.name.lower() for s in Mode3State],
         ),
         EnovatesSensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
@@ -421,7 +421,9 @@ def _entity_descriptions(
                 key="transaction_token",
                 translation_key="transaction_token",
                 rm_type=TransactionToken,
-                value_fn=lambda data: data.transaction_token,
+                # Fallback required for icon/state translation to work/pass hassfest ci checks.
+                # See also https://github.com/home-assistant/core/pull/159754#issuecomment-3787635927
+                value_fn=lambda data: data.transaction_token or "n_a",
             )
         )
     else:
