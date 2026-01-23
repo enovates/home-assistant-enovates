@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -24,7 +23,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
-from .entity import EnovatesEntity
+from .entity import EnovatesEntity, transform_entity_descriptions_per_port
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -55,7 +54,7 @@ def _entity_descriptions(
         EnovatesBinarySensorEntityDescription[State](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="ocpp_state",
-            name="OCPP connected",
+            translation_key="ocpp_state",
             rm_type=State,
             value_fn=lambda data: data.ocpp_state,
             device_class=BinarySensorDeviceClass.CONNECTIVITY,
@@ -63,7 +62,7 @@ def _entity_descriptions(
         EnovatesBinarySensorEntityDescription[State](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="load_shedding_state",
-            name="Load shedding",
+            translation_key="load_shedding_state",
             rm_type=State,
             value_fn=lambda data: data.load_shedding_state,
             device_class=BinarySensorDeviceClass.POWER,
@@ -72,33 +71,29 @@ def _entity_descriptions(
 
     per_port = [
         EnovatesBinarySensorEntityDescription[State](
-            entity_category=EntityCategory.DIAGNOSTIC,
             key="locked",
-            name="Locked",
-            icon="mdi:lock-question",
+            translation_key="locked",
             rm_type=State,
             value_fn=lambda data: data.lock_state != LockState.LOCKED,
             device_class=BinarySensorDeviceClass.LOCK,
         ),
         EnovatesBinarySensorEntityDescription[State](
             key="contactor_state",
-            name="Applying power",
+            translation_key="contactor_state",
             rm_type=State,
             value_fn=lambda data: data.contactor_state,
             device_class=BinarySensorDeviceClass.POWER,
         ),
         EnovatesBinarySensorEntityDescription[Mode3Details](
-            entity_category=EntityCategory.DIAGNOSTIC,
             key="car_connected",
-            name="Car connected",
+            translation_key="car_connected",
             rm_type=Mode3Details,
             value_fn=lambda data: data.state_num not in {Mode3State.A1, Mode3State.A2},
             device_class=BinarySensorDeviceClass.PLUG,
         ),
         EnovatesBinarySensorEntityDescription[Mode3Details](
-            entity_category=EntityCategory.DIAGNOSTIC,
             key="car_requesting_power",
-            name="Car requesting power",
+            translation_key="car_requesting_power",
             rm_type=Mode3Details,
             value_fn=lambda data: data.state_num in {Mode3State.C1, Mode3State.C2},
             device_class=BinarySensorDeviceClass.POWER,
@@ -106,27 +101,21 @@ def _entity_descriptions(
         EnovatesBinarySensorEntityDescription[Mode3Details](
             entity_category=EntityCategory.DIAGNOSTIC,
             key="evse_fault",
-            name="EVSE fault",
+            translation_key="evse_fault",
             rm_type=Mode3Details,
             value_fn=lambda data: data.state_num in {Mode3State.E, Mode3State.F},
             device_class=BinarySensorDeviceClass.PROBLEM,
         ),
         EnovatesBinarySensorEntityDescription[CurrentOffered](
-            entity_category=EntityCategory.DIAGNOSTIC,
             key="evse_offering_power",
-            name="EVSE offering power",
+            translation_key="evse_offering_power",
             rm_type=CurrentOffered,
             value_fn=lambda data: data.active_current_offered > 0,
             device_class=BinarySensorDeviceClass.POWER,
         ),
     ]
 
-    multi_port = len(ports) > 1
-
-    return shared, {
-        port: [dataclasses.replace(ed, key=f"{ed.key}_{port}", name=f"{ed.name} Port {port}") if multi_port else ed for ed in per_port]
-        for port in ports
-    }
+    return shared, transform_entity_descriptions_per_port(ports, per_port)
 
 
 async def async_setup_entry(

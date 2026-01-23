@@ -1,7 +1,8 @@
 {
   "config": {
     "abort": {
-      "already_configured": "This entry is already configured."
+      "already_configured": "This device is already configured.",
+      "reconfigure_successful": "Device reconfigured."
     },
     "error": {
       "connection": "Unable to connect to the Modbus TCP server.",
@@ -9,6 +10,19 @@
       "unknown": "Unknown error occurred."
     },
     "step": {
+      "reconfigure": {
+        "data": {
+          "dual_port": "Dual Port EVSE",
+          "ems_control": "Enable EMS Control mode",
+          "host": "Host (IP address)",
+          "port": "Modbus TCP port"
+        },
+        "data_description": {
+          "dual_port": "Enable if your device has 2 connectors (sockets or cables).",
+          "ems_control": "Enable if your want to control over the EMS current limit from Home Assistant. Only available if also enabled in your device.\nDisable to only enable monitoring."
+        },
+        "description": "The EMS setting on the EVSE must be enabled before this integration can be set up!"
+      },
       "user": {
         "data": {
           "dual_port": "Dual Port EVSE",
@@ -22,6 +36,257 @@
         },
         "description": "The EMS setting on the EVSE must be enabled before this integration can be set up!"
       }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "car_connected": {
+        "name": "Car Connected"
+      },
+      "car_connected_mp": {
+        "name": "Car Connected - C{port_nr}"
+      },
+      "car_requesting_power": {
+        "name": "Car Requesting Power",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      },
+      "car_requesting_power_mp": {
+        "name": "Car Requesting Power - C{port_nr}",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      },
+      "contactor_state": {
+        "name": "Applying Power",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      },
+      "contactor_state_mp": {
+        "name": "Applying Power - C{port_nr}",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      },
+      "evse_fault": {
+        "name": "Fault"
+      },
+      "evse_fault_mp": {
+        "name": "Fault - C{port_nr}"
+      },
+      "evse_offering_power": {
+        "name": "Offering Power",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      },
+      "evse_offering_power_mp": {
+        "name": "Offering Power - C{port_nr}",
+        "state": {
+          "off": "No",
+          "on": "Yes"
+        }
+      },
+      "load_shedding_state": {
+        "name": "Load Shedding"
+      },
+      "locked": {
+        "name": "Cable Locked"
+      },
+      "locked_mp": {
+        "name": "Cable Locked - C{port_nr}"
+      },
+      "ocpp_state": {
+        "name": "OCPP Connected"
+      }
+    },
+    "number": {
+      "ems_limit": {
+        "name": "EMS Limit"
+      },
+      "ems_limit_mp": {
+        "name": "EMS Limit - C{port_nr}"
+      }
+    },
+    "sensor": {
+      "active_current_offered": {
+        "name": "Current Offered"
+      },
+      "active_current_offered_mp": {
+        "name": "Current Offered - C{port_nr}"
+      },
+      "active_energy_import_total": {
+        "name": "Total Charged Energy"
+      },
+      "active_energy_import_total_mp": {
+        "name": "Total Charged Energy - C{port_nr}"
+      },
+      "api_version": {
+        "name": "API Version"
+      },
+      "charger_active_power": {
+        "name": "Chargering Power L{phase}"
+      },
+      "charger_active_power_mp": {
+        "name": "Chargering Power L{phase} - C{port_nr}"
+      },
+      "charger_active_power_total": {
+        "name": "Total Chargering Power"
+      },
+      "charger_active_power_total_mp": {
+        "name": "Total Chargering Power - C{port_nr}"
+      },
+      "cp_neg": {
+        "name": "Mode 3 Control Pilot, Negative"
+      },
+      "cp_neg_mp": {
+        "name": "Mode 3 Control Pilot, Negative - C{port_nr}"
+      },
+      "cp_pos": {
+        "name": "Mode 3 Control Pilot, Positive"
+      },
+      "cp_pos_mp": {
+        "name": "Mode 3 Control Pilot, Positive - C{port_nr}"
+      },
+      "current": {
+        "name": "Current L{phase}"
+      },
+      "current_mp": {
+        "name": "Current L{phase} - C{port_nr}"
+      },
+      "ems_limit": {
+        "name": "EMS Limit"
+      },
+      "ems_limit_mp": {
+        "name": "EMS Limit - C{port_nr}"
+      },
+      "firmware_version": {
+        "name": "Firmware Version"
+      },
+      "installation_current": {
+        "name": "Installation Current L{phase}"
+      },
+      "led_color": {
+        "name": "LED Color",
+        "state": {
+          "BLUE": "Blue",
+          "CYAN": "Cyan",
+          "GREEN": "Green",
+          "OFF": "Off",
+          "ORANGE": "Orange",
+          "PINK": "Pink",
+          "PURPLE": "Purple",
+          "RED": "Red",
+          "WHITE": "White",
+          "YELLOW": "Yellow"
+        }
+      },
+      "led_color_mp": {
+        "name": "LED Color - C{port_nr}",
+        "state": {
+          "BLUE": "Blue",
+          "CYAN": "Cyan",
+          "GREEN": "Green",
+          "OFF": "Off",
+          "ORANGE": "Orange",
+          "PINK": "Pink",
+          "PURPLE": "Purple",
+          "RED": "Red",
+          "WHITE": "White",
+          "YELLOW": "Yellow"
+        }
+      },
+      "lock_state": {
+        "name": "Lock State",
+        "state": {
+          "LOCKED": "Locked",
+          "NO_LOCK_PRESENT": "No Lock Present",
+          "UNLOCKED": "Unlocked"
+        }
+      },
+      "lock_state_mp": {
+        "name": "Lock State - C{port_nr}",
+        "state": {
+          "LOCKED": "Locked",
+          "NO_LOCK_PRESENT": "No Lock Present",
+          "UNLOCKED": "Unlocked"
+        }
+      },
+      "manufacturer": {
+        "name": "Manufacturer"
+      },
+      "max_amp_per_phase": {
+        "name": "Max Amps Per Phase"
+      },
+      "model_id": {
+        "name": "Model ID"
+      },
+      "number_of_phases": {
+        "name": "Number Of Phases"
+      },
+      "number_of_phases_mp": {
+        "name": "Number Of Phases - C{port_nr}"
+      },
+      "pp": {
+        "name": "Mode 3 Proximity Pilot (cable rating)"
+      },
+      "pp_mp": {
+        "name": "Mode 3 Proximity Pilot (cable rating) - C{port_nr}"
+      },
+      "pwm": {
+        "name": "Mode 3 PWM (%)"
+      },
+      "pwm_amp": {
+        "name": "Mode 3 PWM (Amps)"
+      },
+      "pwm_amp_mp": {
+        "name": "Mode 3 PWM (Amps) - C{port_nr}"
+      },
+      "pwm_mp": {
+        "name": "Mode 3 PWM (%) - C{port_nr}"
+      },
+      "serial_nr": {
+        "name": "Serial Number"
+      },
+      "state_num": {
+        "name": "Mode 3 State (enum)"
+      },
+      "state_num_mp": {
+        "name": "Mode 3 State (enum) - C{port_nr}"
+      },
+      "state_str": {
+        "name": "Mode 3 State (name)"
+      },
+      "state_str_mp": {
+        "name": "Mode 3 State (name) - C{port_nr}"
+      },
+      "transaction_token": {
+        "name": "Transaction Token",
+        "state": {
+          "": "N/A"
+        }
+      },
+      "vendor_id": {
+        "name": "Vendor ID"
+      },
+      "voltage": {
+        "name": "Voltage L{phase}"
+      },
+      "voltage_mp": {
+        "name": "Voltage L{phase} - C{port_nr}"
+      }
+    }
+  },
+  "exceptions": {
+    "update_failed": {
+      "message": "Failed to update {rm_type} register block on port {port}. Error: {e}"
     }
   }
 }

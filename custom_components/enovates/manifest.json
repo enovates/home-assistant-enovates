@@ -14,7 +14,7 @@
   "loggers": [
     "custom_components.enovates"
   ],
-  "quality_scale": "silver",
+  "quality_scale": "gold",
   "requirements": [
     "enovates-modbus==0.1.4"
   ],

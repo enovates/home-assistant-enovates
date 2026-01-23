@@ -21,8 +21,8 @@ from homeassistant.const import (
 )
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from .const import DOMAIN, LOGGER
-from .entity import EnovatesEntity
+from .const import DOMAIN
+from .entity import EnovatesEntity, transform_entity_descriptions_per_port
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -46,22 +46,29 @@ class EnovatesNumberEntityDescription[T: RegisterMap](NumberEntityDescription):
     rm_type: type[T]
     get_value_fn: Callable[[EnoOneClient], Any]
     set_value_fn: Callable[[EnoOneClient, float], Any]
+    scale: int = 1
 
 
-ENTITY_DESCRIPTIONS = (
-    EnovatesNumberEntityDescription[EMSLimit](
-        entity_category=EntityCategory.DIAGNOSTIC,
-        key="ems_limit",
-        name="EMS Limit",
-        rm_type=EMSLimit,
-        get_value_fn=lambda api: api.get_ems_limit(),
-        set_value_fn=lambda api, value: api.set_ems_limit(int(value)),
-        native_min_value=-1,
-        native_max_value=32_000,
-        device_class=NumberDeviceClass.CURRENT,
-        native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
-    ),
-)
+def _entity_description(ports: list[int]) -> dict[int, list[EnovatesNumberEntityDescription]]:
+    descriptions = [
+        EnovatesNumberEntityDescription[EMSLimit](
+            entity_category=EntityCategory.DIAGNOSTIC,
+            key="ems_limit",
+            translation_key="ems_limit",
+            rm_type=EMSLimit,
+            get_value_fn=lambda api: api.get_ems_limit(),
+            # The only valid negative nr is -1.
+            set_value_fn=lambda api, value: api.set_ems_limit(int(value) if value >= 0 else -1),
+            native_min_value=-1,
+            native_max_value=32,
+            native_step=0.1,
+            device_class=NumberDeviceClass.CURRENT,
+            scale=1000,  # Actual unit is mA, but that is very unintuitive in the UI.
+            native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        ),
+    ]
+
+    return transform_entity_descriptions_per_port(ports, descriptions)
 
 
 async def async_setup_entry(
@@ -75,20 +82,25 @@ async def async_setup_entry(
 
     diagnostics = await entry.runtime_data.clients[1].get_diagnostics()
 
-    async_add_entities(
-        EnovatesNumberEntity(
-            diagnostics=diagnostics,
-            coordinator=entry.runtime_data.coordinator(i, entity_description.rm_type),
-            entity_description=entity_description,
-            client=entry.runtime_data.clients[i],
+    for device_id, eds in _entity_description(sorted(entry.runtime_data.clients.keys())).items():
+        async_add_entities(
+            EnovatesNumberEntity(
+                diagnostics=diagnostics,
+                coordinator=entry.runtime_data.coordinator(device_id, entity_description.rm_type),
+                entity_description=entity_description,
+                client=entry.runtime_data.clients[device_id],
+            )
+            for entity_description in eds
         )
-        for entity_description in ENTITY_DESCRIPTIONS
-        for i in sorted(entry.runtime_data.clients.keys())
-    )
 
 
 class EnovatesNumberEntity[T: RegisterMap](EnovatesEntity, NumberEntity):
-    """Enovates number class."""
+    """
+    Enovates number class.
+
+    Requires that the entity description has scale, native_min_value, native_max_value and native_max_value set,
+    because unfortunately HA doesn't support using a different unit from the native unit in the UI.
+    """
 
     diagnostics: Diagnostics
     entity_description: EnovatesNumberEntityDescription
@@ -117,14 +129,18 @@ class EnovatesNumberEntity[T: RegisterMap](EnovatesEntity, NumberEntity):
             sw_version=diagnostics.firmware_version,
         )
 
+    async def _read(self) -> None:
+        ed = self.entity_description
+        native = await ed.get_value_fn(self.client)
+        self._attr_native_value = min(ed.native_max_value, max(ed.native_min_value, native / ed.scale))
+
     async def async_added_to_hass(self) -> None:
         """Restore state from device."""
         await super().async_added_to_hass()
-        self._attr_native_value = await self.entity_description.get_value_fn(self.client)
+        await self._read()
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
-        old = self._attr_native_value
-        await self.entity_description.set_value_fn(self.client, value)
-        self._attr_native_value = await self.entity_description.get_value_fn(self.client)
-        LOGGER.debug("async_set_native_value old=%s, value=%s, device=%s", old, value, self._attr_native_value)
+        ed = self.entity_description
+        await ed.set_value_fn(self.client, min(ed.native_max_value, max(ed.native_min_value, value)) * ed.scale)
+        await self._read()

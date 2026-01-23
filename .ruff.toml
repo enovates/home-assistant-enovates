@@ -13,6 +13,7 @@ ignore = [
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
     "TRY003", # Avoid specifying long messages outside the exception class
     "EM102", # Exception must not use an f-string literal, assign to variable first
+    "EM101", # Exception must not use a string literal, assign to variable first
 
     # May conflict with the formatter, https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "D203", # no-blank-line-before-class

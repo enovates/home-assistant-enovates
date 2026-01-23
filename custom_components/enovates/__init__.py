@@ -79,7 +79,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: EnovatesConfigEntry) -> 
             try:
                 return await entry.runtime_data.clients[device_id].fetch(rm_type)
             except (ConnectionError, ModbusException) as e:
-                raise UpdateFailed(f"The device is unavailable: {e!r}") from e
+                raise UpdateFailed(
+                    translation_domain=DOMAIN,
+                    translation_key="update_failed",
+                    translation_placeholders={
+                        "port": device_id,
+                        "rm_type": rm_type.__name__,
+                        "e": repr(e),
+                    },
+                ) from e
 
         return update
 

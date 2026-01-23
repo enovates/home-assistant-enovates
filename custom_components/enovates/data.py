@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.loader import Integration
 
-    from .helpers import EnovatesDUCoordinator
+    from .coordinator import EnovatesDUCoordinator
 
 
 type EnovatesConfigEntry = ConfigEntry[EnovatesData]
