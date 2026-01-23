@@ -16,29 +16,29 @@
       "led_color": {
         "default": "mdi:led-on",
         "state": {
-          "OFF": "mdi:led-off"
+          "off": "mdi:led-off"
         }
       },
       "led_color_mp": {
         "default": "mdi:led-on",
         "state": {
-          "OFF": "mdi:led-off"
+          "off": "mdi:led-off"
         }
       },
       "lock_state": {
         "default": "mdi:lock-question",
         "state": {
-          "LOCKED": "mdi:lock",
-          "NO_LOCK_PRESENT": "mdi:lock-open-remove",
-          "UNLOCKED": "mdi:lock-open"
+          "locked": "mdi:lock",
+          "no_lock_present": "mdi:lock-open-remove",
+          "unlocked": "mdi:lock-open"
         }
       },
       "lock_state_mp": {
         "default": "mdi:lock-question",
         "state": {
-          "LOCKED": "mdi:lock",
-          "NO_LOCK_PRESENT": "mdi:lock-open-remove",
-          "UNLOCKED": "mdi:lock-open"
+          "locked": "mdi:lock",
+          "no_lock_present": "mdi:lock-open-remove",
+          "unlocked": "mdi:lock-open"
         }
       },
       "manufacturer": {
@@ -83,13 +83,13 @@
       "transaction_token": {
         "default": "mdi:credit-card",
         "state": {
-          "": "mdi:credit-card-remove"
+          "n_a": "mdi:credit-card-remove"
         }
       },
       "transaction_token_mp": {
         "default": "mdi:credit-card",
         "state": {
-          "": "mdi:credit-card-remove"
+          "n_a": "mdi:credit-card-remove"
         }
       },
       "vendor_id": {

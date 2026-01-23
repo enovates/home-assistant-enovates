@@ -176,47 +176,47 @@
       "led_color": {
         "name": "LED Color",
         "state": {
-          "BLUE": "Blue",
-          "CYAN": "Cyan",
-          "GREEN": "Green",
-          "OFF": "Off",
-          "ORANGE": "Orange",
-          "PINK": "Pink",
-          "PURPLE": "Purple",
-          "RED": "Red",
-          "WHITE": "White",
-          "YELLOW": "Yellow"
+          "blue": "Blue",
+          "cyan": "Cyan",
+          "green": "Green",
+          "off": "Off",
+          "orange": "Orange",
+          "pink": "Pink",
+          "purple": "Purple",
+          "red": "Red",
+          "white": "White",
+          "yellow": "Yellow"
         }
       },
       "led_color_mp": {
         "name": "LED Color - C{port_nr}",
         "state": {
-          "BLUE": "Blue",
-          "CYAN": "Cyan",
-          "GREEN": "Green",
-          "OFF": "Off",
-          "ORANGE": "Orange",
-          "PINK": "Pink",
-          "PURPLE": "Purple",
-          "RED": "Red",
-          "WHITE": "White",
-          "YELLOW": "Yellow"
+          "blue": "Blue",
+          "cyan": "Cyan",
+          "green": "Green",
+          "off": "Off",
+          "orange": "Orange",
+          "pink": "Pink",
+          "purple": "Purple",
+          "red": "Red",
+          "white": "White",
+          "yellow": "Yellow"
         }
       },
       "lock_state": {
         "name": "Lock State",
         "state": {
-          "LOCKED": "Locked",
-          "NO_LOCK_PRESENT": "No Lock Present",
-          "UNLOCKED": "Unlocked"
+          "locked": "Locked",
+          "no_lock_present": "No Lock Present",
+          "unlocked": "Unlocked"
         }
       },
       "lock_state_mp": {
         "name": "Lock State - C{port_nr}",
         "state": {
-          "LOCKED": "Locked",
-          "NO_LOCK_PRESENT": "No Lock Present",
-          "UNLOCKED": "Unlocked"
+          "locked": "Locked",
+          "no_lock_present": "No Lock Present",
+          "unlocked": "Unlocked"
         }
       },
       "manufacturer": {
@@ -270,7 +270,7 @@
       "transaction_token": {
         "name": "Transaction Token",
         "state": {
-          "": "N/A"
+          "n_a": "N/A"
         }
       },
       "vendor_id": {
