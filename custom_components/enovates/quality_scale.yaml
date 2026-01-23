@@ -80,8 +80,11 @@ rules:
   entity-translations: done
   exception-translations: done
   icon-translations: done
-  reconfiguration-flow: todo  # todo
-  repair-issues: todo  # todo
+  reconfiguration-flow: done
+  repair-issues:
+    status: exempt
+    comment: |
+      No repairable issues.
   stale-devices:
     status: exempt
     comment: |

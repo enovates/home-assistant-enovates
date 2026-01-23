@@ -1,7 +1,8 @@
 {
   "config": {
     "abort": {
-      "already_configured": "This entry is already configured."
+      "already_configured": "This device is already configured.",
+      "reconfigure_successful": "Device reconfigured."
     },
     "error": {
       "connection": "Unable to connect to the Modbus TCP server.",
@@ -9,6 +10,19 @@
       "unknown": "Unknown error occurred."
     },
     "step": {
+      "reconfigure": {
+        "data": {
+          "dual_port": "Dual Port EVSE",
+          "ems_control": "Enable EMS Control mode",
+          "host": "Host (IP address)",
+          "port": "Modbus TCP port"
+        },
+        "data_description": {
+          "dual_port": "Enable if your device has 2 connectors (sockets or cables).",
+          "ems_control": "Enable if your want to control over the EMS current limit from Home Assistant. Only available if also enabled in your device.\nDisable to only enable monitoring."
+        },
+        "description": "The EMS setting on the EVSE must be enabled before this integration can be set up!"
+      },
       "user": {
         "data": {
           "dual_port": "Dual Port EVSE",
