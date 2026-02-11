@@ -6,7 +6,7 @@ ruff==0.14.13
 pre-commit>=4.5.1
 
 pytest==9.0.0
-pytest-homeassistant-custom-component==0.13.307
+pytest-homeassistant-custom-component==0.13.314
 pytest-asyncio==1.3.0
 
 # Actual code dependencies
